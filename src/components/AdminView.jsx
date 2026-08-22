@@ -45,8 +45,23 @@ export const AdminView = ({
     bankTransactions,
     setBankTransactions,
     onOpenMonthlyBill,
-    onIssueBills
+    onIssueBills,
+    userData,
+    onLogout
 }) => {
+    if (userData && userData.status !== 'approved') {
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 81px)', padding: '20px' }}>
+                <div className="panel-card" style={{ maxWidth: '450px', textAlign: 'center', padding: '40px' }}>
+                    <i className="fa-solid fa-user-clock text-amber" style={{ fontSize: '48px', marginBottom: '20px' }}></i>
+                    <h2>Cuenta en Revisión</h2>
+                    <p style={{ color: '#64748B', marginTop: '15px', lineHeight: '1.6' }}>Tu solicitud de administrador está pendiente de aprobación. Por favor, espera a que tu cuenta sea validada por nuestro equipo.</p>
+                    <button className="btn-primary" onClick={onLogout} style={{ marginTop: '25px', width: '100%' }}>Cerrar Sesión</button>
+                </div>
+            </div>
+        );
+    }
+
     // Tabs state
     const [activeTab, setActiveTab] = useState('dashboard');
     const [finanzasExpanded, setFinanzasExpanded] = useState(false);

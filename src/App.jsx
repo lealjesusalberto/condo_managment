@@ -22,6 +22,7 @@ import './sidebar.css';
 export function App() {
     const [currentRole, setCurrentRole] = useState('landing'); // 'landing', 'login', 'register', 'superadmin', 'admin', 'owner'
     const [user, setUser] = useState(null);
+    const [userData, setUserData] = useState(null);
     const [loadingAuth, setLoadingAuth] = useState(true);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const { rate: exchangeRate, loading: exchangeLoading } = useExchangeRate();
@@ -54,7 +55,9 @@ export function App() {
                 try {
                     const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
                     if (userDoc.exists()) {
-                        setCurrentRole(userDoc.data().role);
+                        const data = userDoc.data();
+                        setUserData(data);
+                        setCurrentRole(data.role);
                     } else {
                         // Fallback
                         if (currentUser.email === 'lealjesusalberto@gmail.com') {
@@ -74,6 +77,7 @@ export function App() {
                 }
             } else {
                 setUser(null);
+                setUserData(null);
                 if (currentRole !== 'landing' && currentRole !== 'register') {
                     setCurrentRole('landing');
                 }
@@ -376,6 +380,7 @@ export function App() {
                 exchangeRate={exchangeRate}
                 exchangeLoading={exchangeLoading}
                 onLogout={handleLogout}
+                userData={userData}
             />
 
             <main className="main-content">
@@ -418,6 +423,8 @@ export function App() {
                             setBillsIssued(true);
                             window.appAlert('✅ Todos los recibos del mes han sido emitidos a los propietarios.');
                         }}
+                        userData={userData}
+                        onLogout={handleLogout}
                     />
                 )}
             </main>

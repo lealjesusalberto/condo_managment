@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const Header = ({ currentRole, setRole, condoName, currentOwner, exchangeRate, exchangeLoading, onLogout }) => {
+export const Header = ({ currentRole, setRole, condoName, currentOwner, exchangeRate, exchangeLoading, onLogout, userData }) => {
     return (
         <header className="topbar">
             <div className="brand">
@@ -9,7 +9,7 @@ export const Header = ({ currentRole, setRole, condoName, currentOwner, exchange
                 </div>
                 <div className="brand-info">
                     <h1>Habit<span className="brand-highlight">App</span></h1>
-                    <p>{condoName} • 32 Apartamentos</p>
+                    <p>{userData?.condoName || condoName} • 32 Apartamentos</p>
                 </div>
             </div>
             
@@ -27,11 +27,11 @@ export const Header = ({ currentRole, setRole, condoName, currentOwner, exchange
             <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div className="avatar">
-                        {currentRole === 'owner' ? 'PR' : currentRole === 'superadmin' ? 'SA' : 'AD'}
+                        {currentRole === 'owner' ? 'PR' : currentRole === 'superadmin' ? 'SA' : (userData?.name?.substring(0, 2).toUpperCase() || 'AD')}
                     </div>
                     <div className="user-details">
                         <strong>
-                            {currentRole === 'owner' ? currentOwner.name : currentRole === 'superadmin' ? 'Super Admin' : 'Junta de Condominio'}
+                            {currentRole === 'owner' ? currentOwner.name : currentRole === 'superadmin' ? 'Super Admin' : (userData?.name || 'Junta de Condominio')}
                         </strong>
                         <span>
                             {currentRole === 'owner' ? `Apto ${currentOwner.apto}` : currentRole === 'superadmin' ? 'SaaS Management' : 'Administrador'}
