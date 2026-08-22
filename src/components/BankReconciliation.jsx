@@ -5,7 +5,7 @@ export const BankReconciliation = ({ bankTransactions, setBankTransactions, expe
     const [isProcessing, setIsProcessing] = useState(false);
 
     // Sistema Data
-    const totalCuotasMes = apartments.filter(a => a.monthsDue === 0).length * 45.00 + 450.00;
+    const totalCuotasMes = apartments.filter(a => a.monthsDue === 0).length * 45.00;
     const totalAlquileres = rentalIncomes.reduce((acc, curr) => acc + curr.amount, 0);
     const totalIngresosSistema = totalCuotasMes + totalAlquileres;
     const totalGastosSistema = expenses.reduce((acc, curr) => acc + curr.cost, 0);

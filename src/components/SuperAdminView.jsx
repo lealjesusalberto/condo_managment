@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
+import { db } from '../firebase';
+import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 
 const customIcon = new L.Icon({
     iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -14,20 +16,57 @@ const customIcon = new L.Icon({
 
 export const SuperAdminView = ({ onLogout, exchangeRate, exchangeLoading }) => {
     // Mock data for condos registered in the SaaS
-    const [condos, setCondos] = useState([
-        { id: 101, name: 'Residencias Palmas del Valle', admin: 'Luis Pérez', status: 'approved', apts: 120, plan: 'Pro', lat: 10.4806, lng: -66.9036 },
-        { id: 102, name: 'Torre Empresarial Centro', admin: 'María Gómez', status: 'approved', apts: 45, plan: 'Basic', lat: 10.4900, lng: -66.8800 },
-        { id: 103, name: 'Condominio Los Robles', admin: 'Carlos Ruiz', status: 'pending', apts: 80, plan: 'Trial', lat: 10.4500, lng: -66.9500 },
-        { id: 104, name: 'Edificio El Mirador', admin: 'Ana Silva', status: 'pending', apts: 24, plan: 'Trial', lat: 10.4750, lng: -66.9200 }
-    ]);
+    const [condos, setCondos] = useState([]);
 
-    const handleApprove = (id) => {
-        setCondos(condos.map(c => c.id === id ? { ...c, status: 'approved' } : c));
-        window.appAlert('✅ Administrador y condominio aprobados exitosamente.');
+    useEffect(() => {
+        const q = query(collection(db, 'users'), where('role', '==', 'admin'));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const usersData = [];
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                usersData.push({
+                    id: docSnap.id,
+                    name: data.condoName || 'Sin Nombre',
+                    admin: data.name || 'Desconocido',
+                    status: data.status || 'pending',
+                    apts: data.apts || 0,
+                    plan: data.plan || 'Trial',
+                    lat: data.lat || 10.4806,
+                    lng: data.lng || -66.9036
+                });
+            });
+            
+            setCondos(usersData);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    const handleApprove = async (id) => {
+        if (typeof id === 'string') {
+            try {
+                await updateDoc(doc(db, 'users', id), { status: 'approved' });
+                window.appAlert('✅ Administrador y condominio aprobados exitosamente.');
+            } catch (error) {
+                console.error(error);
+                window.appAlert('Error al aprobar', 'error');
+            }
+        } else {
+            setCondos(prev => prev.map(c => c.id === id ? { ...c, status: 'approved' } : c));
+            window.appAlert('✅ Administrador y condominio aprobados exitosamente.');
+        }
     };
 
-    const handleReject = (id) => {
-        setCondos(condos.map(c => c.id === id ? { ...c, status: 'rejected' } : c));
+    const handleReject = async (id) => {
+        if (typeof id === 'string') {
+            try {
+                await updateDoc(doc(db, 'users', id), { status: 'rejected' });
+            } catch (error) {
+                console.error(error);
+            }
+        } else {
+            setCondos(prev => prev.map(c => c.id === id ? { ...c, status: 'rejected' } : c));
+        }
     };
 
     return (

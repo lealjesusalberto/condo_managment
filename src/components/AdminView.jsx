@@ -73,7 +73,7 @@ export const AdminView = ({
     const [newCatalogExpense, setNewCatalogExpense] = useState({ title: '', category: 'Servicios Básicos', defaultCost: '', impactsAliquota: true });
 
     // Calculated metrics
-    const totalCollected = apartments.filter(a => a.monthsDue === 0).length * 45.00 + 450.00;
+    const totalCollected = apartments.filter(a => a.monthsDue === 0).length * 45.00;
     const totalInMora = apartments.reduce((acc, curr) => acc + curr.debt, 0);
     const totalExpenses = expenses.reduce((acc, curr) => acc + curr.cost, 0);
 

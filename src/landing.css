@@ -468,3 +468,59 @@
     font-size: 12px;
     color: #94A3B8;
 }
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (LANDING PAGE)
+   ========================================================================== */
+@media (max-width: 1024px) {
+    .stats-section {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+    }
+    .stat-card h2 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 80px 15px 40px;
+    }
+    
+    .hero-title {
+        font-size: 2.2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .hero-cta {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
+    
+    .btn-emerald-lg, .btn-outline-light-lg {
+        width: 100%;
+    }
+    
+    .stats-section {
+        grid-template-columns: 1fr;
+        margin-top: 20px;
+        margin-bottom: 40px;
+    }
+    
+    .features-grid, .pricing-grid, .testimonials-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .section-header h2 {
+        font-size: 2rem;
+    }
+    
+    .logos-container {
+        gap: 30px;
+    }
+}

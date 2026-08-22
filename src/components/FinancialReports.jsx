@@ -3,7 +3,7 @@ import React from 'react';
 export const FinancialReports = ({ apartments, expenses, rentalIncomes }) => {
     // 1. Calculations for Estado de Resultados (Income Statement)
     // Ingresos por cuotas de mes (asumimos los pagos al día)
-    const totalCuotasMes = apartments.filter(a => a.monthsDue === 0).length * 45.00 + 450.00; // Valor del dashboard original
+    const totalCuotasMes = apartments.filter(a => a.monthsDue === 0).length * 45.00; // Valor del dashboard original
     const totalAlquileres = rentalIncomes.reduce((acc, curr) => acc + curr.amount, 0);
     const totalIngresos = totalCuotasMes + totalAlquileres;
 

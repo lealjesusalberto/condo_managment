@@ -108,3 +108,58 @@
 .admin-tabs {
     display: none;
 }
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (SIDEBAR)
+   ========================================================================== */
+@media (max-width: 768px) {
+    .admin-dashboard-layout {
+        flex-direction: column;
+        height: auto;
+        min-height: calc(100vh - 81px);
+    }
+    
+    .admin-sidebar {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+        border-right: none;
+        border-bottom: 2px solid #0F172A;
+        -webkit-overflow-scrolling: touch;
+        padding: 5px 10px;
+    }
+    
+    .sidebar-menu {
+        flex-direction: row;
+        padding: 5px 0;
+        gap: 5px;
+    }
+    
+    .sidebar-section-title {
+        display: none;
+    }
+    
+    .sidebar-item {
+        white-space: nowrap;
+        padding: 10px 15px;
+        font-size: 11px;
+        flex-direction: column;
+        gap: 6px;
+        justify-content: center;
+        text-align: center;
+        border-radius: 12px;
+    }
+    
+    .sidebar-item i {
+        font-size: 20px;
+        margin: 0;
+    }
+    
+    .sidebar-sub-menu {
+        display: none !important; /* Hide submenus on mobile for simplicity, or we could style them differently */
+    }
+    
+    .admin-content-area {
+        padding: 15px;
+    }
+}

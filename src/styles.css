@@ -1188,6 +1188,202 @@ code {
     padding: 40px !important;
 }
 
+.auth-layout .btn-primary {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.receipt-preview-img {
+    max-width: 100%;
+    max-height: 250px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    margin-bottom: 15px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ADMIN TABS */
+.admin-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 15px;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    padding: 10px 15px;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+    background: #F1F5F9;
+    color: var(--primary);
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+/* FINANCIAL REPORTS */
+.financial-reports-container, .bank-reconciliation-container {
+    animation: fadeIn 0.4s ease;
+}
+
+.report-header, .reconciliation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.reports-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.financial-doc-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.doc-header {
+    background: #F8FAFC;
+    padding: 20px;
+    border-bottom: 2px solid var(--border-color);
+    text-align: center;
+}
+
+.doc-header h3 {
+    font-size: 20px;
+    color: var(--text-dark);
+    margin-bottom: 5px;
+}
+
+.doc-body {
+    padding: 25px;
+}
+
+.doc-section {
+    margin-bottom: 15px;
+}
+
+.section-title {
+    font-size: 14px;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+}
+
+.doc-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px dashed #E2E8F0;
+}
+
+.doc-row:last-child {
+    border-bottom: none;
+}
+
+.total-row {
+    border-top: 2px solid #CBD5E1;
+    border-bottom: none;
+    margin-top: 5px;
+    padding-top: 10px;
+    font-size: 15px;
+}
+
+.result-row {
+    background: #F1F5F9;
+    padding: 15px;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    margin-top: 15px;
+}
+
+/* RECONCILIATION */
+.recon-dashboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.recon-card {
+    background: white;
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.system-card h2 { color: var(--primary); }
+.bank-card h2 { color: var(--text-dark); }
+.diff-card.has-diff h2 { color: var(--rose); }
+.diff-card.no-diff h2 { color: var(--emerald); }
+
+.recon-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+}
+
+.recon-actions {
+    margin-top: 15px;
+}
+
+/* PREMIUM AUTH LAYOUT */
+.auth-layout {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(30, 64, 175, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%),
+                url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
+    padding: 20px;
+}
+
+.auth-layout .view-section {
+    background: transparent;
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+}
+
+.auth-layout .panel-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+    padding: 40px !important;
+}
+
 .auth-layout h2 {
     color: #0F172A;
     font-weight: 800;
@@ -1195,4 +1391,86 @@ code {
 
 .auth-layout p {
     color: #475569;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (GLOBAL)
+   ========================================================================== */
+@media (max-width: 1024px) {
+    .summary-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* TOPBAR */
+    .topbar {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+        text-align: center;
+    }
+    
+    .role-switcher-container {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
+    
+    .role-toggle-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .role-btn {
+        flex: 1;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    /* GRIDS */
+    .summary-grid,
+    .admin-grid,
+    .form-grid-2,
+    .form-grid-3 {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* MODALS */
+    .modal-content, .global-alert-modal {
+        width: 95% !important;
+        padding: 20px !important;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .modal-grid-2 {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* TABLES (Make them scrollable horizontally) */
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: var(--radius-sm);
+        box-shadow: inset -10px 0 10px -10px rgba(0,0,0,0.1);
+    }
+    
+    /* FORM INPUTS OVERRIDES */
+    .form-group[style*="gridColumn"] {
+        grid-column: 1 / -1 !important;
+    }
+    
+    /* UTILS */
+    .header-actions, .panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        gap: 10px;
+    }
+    
+    .header-actions button, .panel-header button {
+        width: 100%;
+    }
 }
