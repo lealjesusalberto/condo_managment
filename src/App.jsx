@@ -121,6 +121,19 @@ export function App() {
         return () => unsubscribe();
     }, [user, userData]);
 
+    // Sync apartment count to admin's user document for SuperAdmin visibility
+    useEffect(() => {
+        if (!user || !userData || userData.role !== 'admin') return;
+        const syncCount = async () => {
+            try {
+                await updateDoc(doc(db, 'users', user.uid), { apts: apartments.length });
+            } catch (err) {
+                console.warn('Could not sync apts count:', err);
+            }
+        };
+        syncCount();
+    }, [apartments.length, user, userData]);
+
     const handleLogout = async () => {
         await signOut(auth);
         setCurrentRole('landing');

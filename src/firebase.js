@@ -23,4 +23,8 @@ try {
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export { app, analytics, auth, db };
+// Secondary app for user creation without logging out current user
+const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+const secondaryAuth = getAuth(secondaryApp);
+
+export { app, analytics, auth, db, secondaryApp, secondaryAuth };

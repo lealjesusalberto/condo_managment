@@ -4,8 +4,9 @@ import { FinancialReports } from './FinancialReports';
 import { BankReconciliation } from './BankReconciliation';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import { db } from '../firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { db, secondaryAuth } from '../firebase';
+import { collection, addDoc, deleteDoc, doc, updateDoc, getCountFromServer, setDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 
 const customIcon = new L.Icon({
     iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -87,7 +88,7 @@ export const AdminView = ({
     const [tempReceiptUrl, setTempReceiptUrl] = useState('');
 
     // State for Config Tab - New Apartment
-    const [newApto, setNewApto] = useState({ apto: '', torre: '', owner: '', phone: '', aliquotPercentage: '' });
+    const [newApto, setNewApto] = useState({ apto: '', torre: '', owner: '', phone: '', email: '', password: '', aliquotPercentage: '' });
     // State for Config Tab - New Fixed Expense
     const [newCatalogExpense, setNewCatalogExpense] = useState({ title: '', category: 'Servicios Básicos', defaultCost: '', impactsAliquota: true });
 
@@ -203,20 +204,58 @@ export const AdminView = ({
         console.log('🔵 UID del usuario:', currentUser.uid);
         console.log('🔵 Datos:', { apto: newApto.apto, owner: newApto.owner, aliquot });
         try {
+            let ownerUid = null;
+
+            // Si se proporciona email y contraseña, crear el usuario en Firebase Auth usando la app secundaria
+            if (newApto.email && newApto.password) {
+                try {
+                    const userCredential = await createUserWithEmailAndPassword(secondaryAuth, newApto.email, newApto.password);
+                    ownerUid = userCredential.user.uid;
+                    
+                    // Crear documento global del usuario
+                    await setDoc(doc(db, 'users', ownerUid), {
+                        name: newApto.owner,
+                        email: newApto.email,
+                        role: 'owner',
+                        apto: newApto.apto,
+                        adminUid: currentUser.uid, // Referencia al admin que lo creó
+                        condoName: condoName,
+                        createdAt: new Date()
+                    });
+
+                    // Desloguear la app secundaria para limpiar estado
+                    await signOut(secondaryAuth);
+                } catch (authErr) {
+                    console.error('Error creando Auth user:', authErr);
+                    window.appAlert('No se pudo crear la cuenta del propietario: ' + authErr.message, 'error');
+                    return; // Detener proceso si falla la creación de usuario
+                }
+            }
+
             const apartmentsRef = collection(db, 'users', currentUser.uid, 'apartments');
             const docRef = await addDoc(apartmentsRef, {
                 apto: newApto.apto,
                 torre: newApto.torre,
                 owner: newApto.owner,
                 phone: newApto.phone,
+                email: newApto.email || '',
+                ownerUid: ownerUid,
                 aliquotPercentage: aliquot,
                 monthsDue: 0,
                 debt: 0,
-                paidUntil: 'Nuevo Registro'
+                paidUntil: 'Nuevo Registro',
+                createdAt: new Date()
             });
             console.log('✅ Apartamento guardado con ID:', docRef.id, 'en path:', path);
-            setNewApto({ apto: '', torre: '', owner: '', phone: '', aliquotPercentage: '' });
-            window.appAlert('✅ Apartamento registrado exitosamente en Firestore.');
+            // Actualizar conteo de apartamentos en el documento del admin
+            try {
+                const snapshot = await getCountFromServer(apartmentsRef);
+                await updateDoc(doc(db, 'users', currentUser.uid), { apts: snapshot.data().count });
+            } catch (countErr) {
+                console.warn('No se pudo actualizar conteo de apts:', countErr);
+            }
+            setNewApto({ apto: '', torre: '', owner: '', phone: '', email: '', password: '', aliquotPercentage: '' });
+            window.appAlert('✅ Apartamento y propietario registrados exitosamente.');
         } catch (error) {
             console.error('❌ Error adding apartment:', error);
             console.error('❌ Error code:', error.code);
@@ -229,6 +268,14 @@ export const AdminView = ({
         if (!currentUser) return;
         try {
             await deleteDoc(doc(db, 'users', currentUser.uid, 'apartments', aptId));
+            // Actualizar conteo de apartamentos en el documento del admin
+            try {
+                const apartmentsRef = collection(db, 'users', currentUser.uid, 'apartments');
+                const snapshot = await getCountFromServer(apartmentsRef);
+                await updateDoc(doc(db, 'users', currentUser.uid), { apts: snapshot.data().count });
+            } catch (countErr) {
+                console.warn('No se pudo actualizar conteo de apts:', countErr);
+            }
             window.appAlert('✅ Apartamento eliminado.');
         } catch (error) {
             console.error('Error deleting apartment:', error);
@@ -708,8 +755,7 @@ export const AdminView = ({
                                             </div>
                                         </td>
                                     </tr>
-                                ))
-                                )}}
+                                )))}
                             </tbody>
                         </table>
                     </div>
@@ -838,6 +884,17 @@ export const AdminView = ({
                                 <div className="form-group">
                                     <label>Propietario / Responsable*</label>
                                     <input type="text" className="form-input" placeholder="Nombre completo" value={newApto.owner} onChange={e => setNewApto({...newApto, owner: e.target.value})} required/>
+                                </div>
+                                <div className="form-group">
+                                    <label>Correo Electrónico (Para Login)</label>
+                                    <input type="email" className="form-input" placeholder="propietario@email.com (opcional)" value={newApto.email} onChange={e => setNewApto({...newApto, email: e.target.value})} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Contraseña (Para Login)</label>
+                                    <input type="password" className="form-input" placeholder="Min. 6 caracteres" value={newApto.password} onChange={e => setNewApto({...newApto, password: e.target.value})} minLength={6} disabled={!newApto.email} title={!newApto.email ? 'Primero ingresa un email' : ''} />
+                                    <small style={{ color: '#64748B', display: 'block', marginTop: '4px', fontSize: '11px' }}>
+                                        Si ingresas email y contraseña, se le creará una cuenta para que pueda ingresar al sistema.
+                                    </small>
                                 </div>
                                 <div className="form-group">
                                     <label>Teléfono (WhatsApp)</label>
