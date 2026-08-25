@@ -415,6 +415,7 @@ export function App() {
                 exchangeLoading={exchangeLoading}
                 onLogout={handleLogout}
                 userData={userData}
+                apartmentsCount={apartments.length}
             />
 
             <main className="main-content">

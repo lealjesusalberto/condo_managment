@@ -328,7 +328,7 @@ export const AdminView = ({
                     <div className="card-info">
                         <span>Recaudación del Mes</span>
                         <h3 className="text-emerald">${totalCollected.toFixed(2)}</h3>
-                        <small>Objetivo del mes cubierto al 82%</small>
+                        <small>{apartments.length > 0 ? `${apartments.length} unidades registradas` : 'Sin unidades registradas'}</small>
                     </div>
                 </div>
 
@@ -339,7 +339,7 @@ export const AdminView = ({
                     <div className="card-info">
                         <span>Total Cartera en Mora</span>
                         <h3 className="text-rose">${totalInMora.toFixed(2)}</h3>
-                        <small>3 Apartamentos pendientes</small>
+                        <small>{apartments.filter(a => a.monthsDue > 0).length} Apartamentos pendientes</small>
                     </div>
                 </div>
 
@@ -621,7 +621,7 @@ export const AdminView = ({
                     <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                             <h3><i className="fa-solid fa-city"></i> Estado de Cuenta por Apartamento</h3>
-                            <span className="badge-blue">32 Unidades</span>
+                            <span className="badge-blue">{apartments.length} Unidades</span>
                         </div>
                         <button className="btn-primary" onClick={onIssueBills}>
                             <i className="fa-solid fa-paper-plane"></i> Emitir Recibos del Mes

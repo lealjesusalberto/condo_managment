@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const Header = ({ currentRole, setRole, condoName, currentOwner, exchangeRate, exchangeLoading, onLogout, userData }) => {
+export const Header = ({ currentRole, setRole, condoName, currentOwner, exchangeRate, exchangeLoading, onLogout, userData, apartmentsCount }) => {
     return (
         <header className="topbar">
             <div className="brand">
@@ -9,7 +9,7 @@ export const Header = ({ currentRole, setRole, condoName, currentOwner, exchange
                 </div>
                 <div className="brand-info">
                     <h1>Habit<span className="brand-highlight">App</span></h1>
-                    <p>{userData?.condoName || condoName} • 32 Apartamentos</p>
+                    <p>{userData?.condoName || condoName} • {apartmentsCount} Apartamentos</p>
                 </div>
             </div>
             
