@@ -121,18 +121,6 @@ export function App() {
         return () => unsubscribe();
     }, [user, userData]);
 
-    // Sync apartment count to admin's user document for SuperAdmin visibility
-    useEffect(() => {
-        if (!user || !userData || userData.role !== 'admin') return;
-        const syncCount = async () => {
-            try {
-                await updateDoc(doc(db, 'users', user.uid), { apts: apartments.length });
-            } catch (err) {
-                console.warn('Could not sync apts count:', err);
-            }
-        };
-        syncCount();
-    }, [apartments.length, user, userData]);
 
     const handleLogout = async () => {
         await signOut(auth);
@@ -178,6 +166,19 @@ export function App() {
     // Roster of Apartments (loaded from Firestore)
     const [apartments, setApartments] = useState([]);
     const [apartmentsLoading, setApartmentsLoading] = useState(true);
+
+    // Sync apartment count to admin's user document for SuperAdmin visibility
+    useEffect(() => {
+        if (!user || !userData || userData.role !== 'admin') return;
+        const syncCount = async () => {
+            try {
+                await updateDoc(doc(db, 'users', user.uid), { apts: apartments.length });
+            } catch (err) {
+                console.warn('Could not sync apts count:', err);
+            }
+        };
+        syncCount();
+    }, [apartments.length, user, userData]);
 
     // Payment History for Owner (Apto 4B)
     const [ownerPayments, setOwnerPayments] = useState([]);
