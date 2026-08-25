@@ -33,7 +33,7 @@ export function App() {
             setGlobalAlert({ show: true, message, type });
         };
 
-        // Inicializar Super Admin si no existe
+        // Inicializar Super Admin si no existe (solo primera vez)
         const initSuperAdmin = async () => {
             try {
                 const res = await createUserWithEmailAndPassword(auth, 'lealjesusalberto@gmail.com', 'condo.adminpass.uio');
@@ -53,17 +53,25 @@ export function App() {
             if (currentUser) {
                 setUser(currentUser);
                 try {
-                    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-                    if (userDoc.exists()) {
-                        const data = userDoc.data();
+                    const userDocRef = doc(db, 'users', currentUser.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+                    if (userDocSnap.exists()) {
+                        const data = userDocSnap.data();
                         setUserData(data);
                         setCurrentRole(data.role);
                         if (data.condoName) {
                             setCondoSettings(prev => ({ ...prev, name: data.condoName }));
                         }
                     } else {
-                        // Fallback
+                        // Documento no existe — crearlo si es superadmin
                         if (currentUser.email === 'lealjesusalberto@gmail.com') {
+                            await setDoc(userDocRef, {
+                                email: 'lealjesusalberto@gmail.com',
+                                role: 'superadmin',
+                                name: 'Súper Administrador',
+                                status: 'approved'
+                            });
+                            setUserData({ role: 'superadmin', name: 'Súper Administrador', status: 'approved' });
                             setCurrentRole('superadmin');
                         } else {
                             setCurrentRole('owner');
