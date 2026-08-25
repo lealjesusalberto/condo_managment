@@ -14,7 +14,7 @@ import { useExchangeRate } from './hooks/useExchangeRate';
 import { useEffect } from 'react';
 import { onAuthStateChanged, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from './firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, onSnapshot, addDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import './styles.css';
 import './landing.css';
 import './sidebar.css';
@@ -58,6 +58,9 @@ export function App() {
                         const data = userDoc.data();
                         setUserData(data);
                         setCurrentRole(data.role);
+                        if (data.condoName) {
+                            setCondoSettings(prev => ({ ...prev, name: data.condoName }));
+                        }
                     } else {
                         // Fallback
                         if (currentUser.email === 'lealjesusalberto@gmail.com') {
@@ -87,6 +90,28 @@ export function App() {
 
         return () => unsubscribe();
     }, []);
+
+    // Load apartments from Firestore in real-time for the current admin user
+    useEffect(() => {
+        if (!user || !userData || userData.role !== 'admin') {
+            setApartments([]);
+            setApartmentsLoading(false);
+            return;
+        }
+        const apartmentsRef = collection(db, 'users', user.uid, 'apartments');
+        const unsubscribe = onSnapshot(apartmentsRef, (snapshot) => {
+            const aptsData = [];
+            snapshot.forEach((docSnap) => {
+                aptsData.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            setApartments(aptsData);
+            setApartmentsLoading(false);
+        }, (error) => {
+            console.error('Error loading apartments:', error);
+            setApartmentsLoading(false);
+        });
+        return () => unsubscribe();
+    }, [user, userData]);
 
     const handleLogout = async () => {
         await signOut(auth);
@@ -129,8 +154,9 @@ export function App() {
         status: 'ok'
     });
 
-    // Roster of Apartments
+    // Roster of Apartments (loaded from Firestore)
     const [apartments, setApartments] = useState([]);
+    const [apartmentsLoading, setApartmentsLoading] = useState(true);
 
     // Payment History for Owner (Apto 4B)
     const [ownerPayments, setOwnerPayments] = useState([]);
@@ -425,6 +451,8 @@ export function App() {
                         }}
                         userData={userData}
                         onLogout={handleLogout}
+                        currentUser={user}
+                        apartmentsLoading={apartmentsLoading}
                     />
                 )}
             </main>

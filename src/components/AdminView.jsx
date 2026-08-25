@@ -4,6 +4,8 @@ import { FinancialReports } from './FinancialReports';
 import { BankReconciliation } from './BankReconciliation';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
+import { db } from '../firebase';
+import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 const customIcon = new L.Icon({
     iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -47,7 +49,9 @@ export const AdminView = ({
     onOpenMonthlyBill,
     onIssueBills,
     userData,
-    onLogout
+    onLogout,
+    currentUser,
+    apartmentsLoading
 }) => {
     if (userData && userData.status !== 'approved') {
         return (
@@ -182,22 +186,46 @@ export const AdminView = ({
         window.appAlert('✅ Comprobante firmado adjuntado con éxito.');
     };
 
-    const handleAddApartment = (e) => {
+    const handleAddApartment = async (e) => {
         e.preventDefault();
         const aliquot = parseFloat(newApto.aliquotPercentage);
         if (!newApto.apto || !newApto.owner || isNaN(aliquot)) {
             window.appAlert('Por favor completa los campos requeridos y asegúrate que la alícuota sea un número.', 'error');
             return;
         }
-        setApartments([...apartments, {
-            ...newApto,
-            aliquotPercentage: aliquot,
-            monthsDue: 0,
-            debt: 0,
-            paidUntil: 'Nuevo Registro'
-        }]);
-        setNewApto({ apto: '', torre: '', owner: '', phone: '', aliquotPercentage: '' });
-        window.appAlert('✅ Apartamento registrado.');
+        if (!currentUser) {
+            window.appAlert('Error: No se ha identificado al usuario. Intenta iniciar sesión de nuevo.', 'error');
+            return;
+        }
+        try {
+            const apartmentsRef = collection(db, 'users', currentUser.uid, 'apartments');
+            await addDoc(apartmentsRef, {
+                apto: newApto.apto,
+                torre: newApto.torre,
+                owner: newApto.owner,
+                phone: newApto.phone,
+                aliquotPercentage: aliquot,
+                monthsDue: 0,
+                debt: 0,
+                paidUntil: 'Nuevo Registro'
+            });
+            setNewApto({ apto: '', torre: '', owner: '', phone: '', aliquotPercentage: '' });
+            window.appAlert('✅ Apartamento registrado exitosamente.');
+        } catch (error) {
+            console.error('Error adding apartment:', error);
+            window.appAlert('Error al registrar el apartamento. Verifica los permisos.', 'error');
+        }
+    };
+
+    const handleDeleteApartment = async (aptId) => {
+        if (!currentUser) return;
+        try {
+            await deleteDoc(doc(db, 'users', currentUser.uid, 'apartments', aptId));
+            window.appAlert('✅ Apartamento eliminado.');
+        } catch (error) {
+            console.error('Error deleting apartment:', error);
+            window.appAlert('Error al eliminar el apartamento.', 'error');
+        }
     };
 
     const handleAddCatalogExpense = (e) => {
@@ -612,7 +640,16 @@ export const AdminView = ({
                                 </tr>
                             </thead>
                             <tbody>
-                                {apartments.map((ap) => (
+                                {apartmentsLoading ? (
+                                    <tr><td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#64748B' }}>
+                                        <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '8px' }}></i>Cargando apartamentos...
+                                    </td></tr>
+                                ) : apartments.length === 0 ? (
+                                    <tr><td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#64748B' }}>
+                                        No hay apartamentos registrados. Ve a Configuración para añadir propiedades.
+                                    </td></tr>
+                                ) : (
+                                apartments.map((ap) => (
                                     <tr key={ap.apto}>
                                         <td><strong>{ap.apto}</strong></td>
                                         <td>{ap.owner}</td>
@@ -653,10 +690,18 @@ export const AdminView = ({
                                                         ✓ Al día
                                                     </span>
                                                 )}
+                                                <button
+                                                    className="btn-sm-rose"
+                                                    onClick={() => handleDeleteApartment(ap.id)}
+                                                    title="Eliminar Apartamento"
+                                                >
+                                                    <i className="fa-solid fa-trash"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
+                                ))
+                                )}}
                             </tbody>
                         </table>
                     </div>
