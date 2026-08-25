@@ -194,12 +194,17 @@ export const AdminView = ({
             return;
         }
         if (!currentUser) {
-            window.appAlert('Error: No se ha identificado al usuario. Intenta iniciar sesión de nuevo.', 'error');
+            window.appAlert('Error: No se ha identificado al usuario (currentUser es null). Intenta iniciar sesión de nuevo.', 'error');
+            console.error('currentUser is null/undefined');
             return;
         }
+        const path = `users/${currentUser.uid}/apartments`;
+        console.log('🔵 Intentando guardar apartamento en:', path);
+        console.log('🔵 UID del usuario:', currentUser.uid);
+        console.log('🔵 Datos:', { apto: newApto.apto, owner: newApto.owner, aliquot });
         try {
             const apartmentsRef = collection(db, 'users', currentUser.uid, 'apartments');
-            await addDoc(apartmentsRef, {
+            const docRef = await addDoc(apartmentsRef, {
                 apto: newApto.apto,
                 torre: newApto.torre,
                 owner: newApto.owner,
@@ -209,11 +214,14 @@ export const AdminView = ({
                 debt: 0,
                 paidUntil: 'Nuevo Registro'
             });
+            console.log('✅ Apartamento guardado con ID:', docRef.id, 'en path:', path);
             setNewApto({ apto: '', torre: '', owner: '', phone: '', aliquotPercentage: '' });
-            window.appAlert('✅ Apartamento registrado exitosamente.');
+            window.appAlert('✅ Apartamento registrado exitosamente en Firestore.');
         } catch (error) {
-            console.error('Error adding apartment:', error);
-            window.appAlert('Error al registrar el apartamento. Verifica los permisos.', 'error');
+            console.error('❌ Error adding apartment:', error);
+            console.error('❌ Error code:', error.code);
+            console.error('❌ Error message:', error.message);
+            window.appAlert(`Error al registrar: ${error.message}`, 'error');
         }
     };
 
