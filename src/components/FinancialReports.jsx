@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const FinancialReports = ({ apartments, expenses, rentalIncomes }) => {
+export const FinancialReports = ({ apartments, expenses, rentalIncomes, bankTransactions = [] }) => {
     // 1. Calculations for Estado de Resultados (Income Statement)
     // Ingresos por cuotas de mes (asumimos los pagos al día)
     const totalCuotasMes = apartments.filter(a => a.monthsDue === 0).length * 45.00; // Valor del dashboard original
