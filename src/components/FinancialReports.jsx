@@ -18,10 +18,10 @@ export const FinancialReports = ({ apartments, expenses, rentalIncomes }) => {
     // Cuentas por cobrar a copropietarios
     const cuentasPorCobrar = apartments.reduce((acc, curr) => acc + curr.debt, 0);
     
-    // Saldo en Banco (Para demo, asumimos que es el resultado acumulado + ingresos del mes no gastados)
-    // En un caso real vendría de la conciliación. Aquí simularemos un saldo base + el resultado de este mes
-    const saldoBancoInicial = 1250.00;
-    const saldoBancoActual = saldoBancoInicial + resultadoDelMes - cuentasPorCobrar; // Ajuste simple para que no parezca que todo está en banco
+    // Saldo en Banco real (calculado desde bankTransactions)
+    const saldoBancoActual = (bankTransactions && bankTransactions.length > 0) 
+        ? bankTransactions.reduce((acc, tx) => acc + tx.amount, 0)
+        : 1250.00 + resultadoDelMes - cuentasPorCobrar; // Fallback si no hay transacciones
 
     const totalActivos = saldoBancoActual + cuentasPorCobrar;
 

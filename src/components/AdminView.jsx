@@ -97,6 +97,13 @@ export const AdminView = ({
     const totalInMora = apartments.reduce((acc, curr) => acc + curr.debt, 0);
     const totalExpenses = expenses.reduce((acc, curr) => acc + curr.cost, 0);
 
+    const groupedOwners = apartments.reduce((acc, apt) => {
+        if (!acc[apt.owner]) acc[apt.owner] = { name: apt.owner, email: apt.email, phone: apt.phone, apartments: [] };
+        acc[apt.owner].apartments.push(apt);
+        return acc;
+    }, {});
+    const ownersList = Object.values(groupedOwners);
+
     const triggerConfetti = () => {
         try {
             confetti({
@@ -331,6 +338,9 @@ export const AdminView = ({
                     <button className={`sidebar-item ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => setActiveTab('expenses')}>
                         <i className="fa-solid fa-money-bill-transfer"></i> Egresos & Recibos
                     </button>
+                    <button className={`sidebar-item ${activeTab === 'apartments' ? 'active' : ''}`} onClick={() => setActiveTab('apartments')}>
+                        <i className="fa-solid fa-door-open"></i> Apartamentos
+                    </button>
                     <button className={`sidebar-item ${activeTab === 'owners' ? 'active' : ''}`} onClick={() => setActiveTab('owners')}>
                         <i className="fa-solid fa-users"></i> Propietarios
                     </button>
@@ -548,6 +558,8 @@ export const AdminView = ({
                                         <option value="Personal">Personal / Nómina</option>
                                         <option value="Seguridad y Control">Seguridad y Control</option>
                                         <option value="Reparaciones Mayores">Reparaciones Mayores</option>
+                                        <option value="Financieros">Financieros</option>
+                                        <option value="Administrativos">Administrativos</option>
                                     </select>
                                 </div>
 
@@ -671,7 +683,7 @@ export const AdminView = ({
                 </div>
             )}
 
-            {activeTab === 'owners' && (
+            {activeTab === 'apartments' && (
                 <div className="panel-card">
                     <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
@@ -704,7 +716,11 @@ export const AdminView = ({
                                         No hay apartamentos registrados. Ve a Configuración para añadir propiedades.
                                     </td></tr>
                                 ) : (
-                                apartments.map((ap) => (
+                                [...apartments].sort((a,b) => {
+                                    const aStr = (a.torre || '') + (a.apto || '').replace(/PB/ig, '0').replace(/PH/ig, '999');
+                                    const bStr = (b.torre || '') + (b.apto || '').replace(/PB/ig, '0').replace(/PH/ig, '999');
+                                    return aStr.localeCompare(bStr, undefined, {numeric: true});
+                                }).map((ap) => (
                                     <tr key={ap.apto}>
                                         <td><strong>{ap.apto}</strong></td>
                                         <td>{ap.owner}</td>
@@ -762,11 +778,56 @@ export const AdminView = ({
                 </div>
             )}
 
+            {activeTab === 'owners' && (
+                <div className="panel-card">
+                    <div className="panel-header">
+                        <h3><i className="fa-solid fa-users"></i> Directorio de Propietarios</h3>
+                        <span className="badge-blue">{ownersList.length} Registrados</span>
+                    </div>
+                    <div className="table-responsive">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre Completo</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Apartamentos Asignados</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {ownersList.length === 0 ? (
+                                    <tr><td colSpan="5" style={{textAlign:'center', color:'#64748B'}}>No hay propietarios registrados</td></tr>
+                                ) : ownersList.map((owner) => (
+                                    <tr key={owner.name}>
+                                        <td><strong>{owner.name}</strong></td>
+                                        <td>{owner.email || '-'}</td>
+                                        <td>{owner.phone || '-'}</td>
+                                        <td>{owner.apartments.map(a => a.apto).join(', ')}</td>
+                                        <td>
+                                            <div style={{ display: 'flex', gap: '5px' }}>
+                                                <button className="btn-sm-outline" onClick={() => window.appAlert('Para editar un propietario, actualice la información de uno de sus apartamentos en la sección de Configuración o contacte a soporte.')}><i className="fa-solid fa-pen"></i></button>
+                                                <button className="btn-sm-rose" onClick={() => {
+                                                    if(window.confirm('¿Eliminar propietario y TODOS sus apartamentos asociados?')) {
+                                                        owner.apartments.forEach(ap => handleDeleteApartment(ap.id));
+                                                    }
+                                                }}><i className="fa-solid fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
             {activeTab === 'financials' && (
                 <FinancialReports 
                     apartments={apartments}
                     expenses={expenses}
                     rentalIncomes={rentalIncomes}
+                    bankTransactions={bankTransactions}
                 />
             )}
 
@@ -883,7 +944,18 @@ export const AdminView = ({
                                 </div>
                                 <div className="form-group">
                                     <label>Propietario / Responsable*</label>
-                                    <input type="text" className="form-input" placeholder="Nombre completo" value={newApto.owner} onChange={e => setNewApto({...newApto, owner: e.target.value})} required/>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <select className="form-input" style={{ width: '40%' }} onChange={e => {
+                                            if(e.target.value) {
+                                                const existing = ownersList.find(o => o.name === e.target.value);
+                                                if(existing) setNewApto({...newApto, owner: existing.name, email: existing.email, phone: existing.phone});
+                                            }
+                                        }}>
+                                            <option value="">Nuevo...</option>
+                                            {ownersList.map(o => <option key={o.name} value={o.name}>{o.name}</option>)}
+                                        </select>
+                                        <input type="text" className="form-input" style={{ width: '60%' }} placeholder="Nombre completo" value={newApto.owner} onChange={e => setNewApto({...newApto, owner: e.target.value})} required/>
+                                    </div>
                                 </div>
                                 <div className="form-group">
                                     <label>Correo Electrónico (Para Login)</label>
@@ -919,6 +991,8 @@ export const AdminView = ({
                                         <option value="Servicios Básicos">Servicios Básicos</option>
                                         <option value="Personal">Personal</option>
                                         <option value="Mantenimiento General">Mantenimiento General</option>
+                                        <option value="Financieros">Financieros</option>
+                                        <option value="Administrativos">Administrativos</option>
                                     </select>
                                 </div>
                                 <div className="form-group">
@@ -933,6 +1007,35 @@ export const AdminView = ({
                                 </div>
                                 <button type="submit" className="btn-emerald" style={{width: '100%'}}>Añadir al Catálogo</button>
                             </form>
+
+                            <div className="table-responsive" style={{marginTop: '20px'}}>
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Concepto</th>
+                                            <th>Categoría</th>
+                                            <th>Costo Est.</th>
+                                            <th>Alícuota</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {fixedExpensesCatalog.length === 0 ? (
+                                            <tr><td colSpan="5" style={{textAlign:'center', color:'#64748B'}}>Catálogo vacío</td></tr>
+                                        ) : fixedExpensesCatalog.map(cat => (
+                                            <tr key={cat.id}>
+                                                <td>{cat.title}</td>
+                                                <td>{cat.category}</td>
+                                                <td>${cat.defaultCost}</td>
+                                                <td>{cat.impactsAliquota ? 'Sí' : 'No'}</td>
+                                                <td>
+                                                    <button className="btn-sm-rose" onClick={() => setFixedExpensesCatalog(fixedExpensesCatalog.filter(c => c.id !== cat.id))}><i className="fa-solid fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -9,11 +9,10 @@ export const BankReconciliation = ({ bankTransactions, setBankTransactions, expe
     const totalAlquileres = rentalIncomes.reduce((acc, curr) => acc + curr.amount, 0);
     const totalIngresosSistema = totalCuotasMes + totalAlquileres;
     const totalGastosSistema = expenses.reduce((acc, curr) => acc + curr.cost, 0);
-    const saldoSistema = totalIngresosSistema - totalGastosSistema + 1250.00; // Asumiendo saldo base de 1250
+    const saldoSistema = totalIngresosSistema - totalGastosSistema;
 
     // Banco Data (Calculated from imported transactions)
-    const saldoBancoInicial = 1250.00; // Same base balance for the demo
-    const saldoBancoActual = bankTransactions.reduce((acc, tx) => acc + tx.amount, saldoBancoInicial);
+    const saldoBancoActual = bankTransactions.reduce((acc, tx) => acc + tx.amount, 0);
     
     const diferencia = saldoBancoActual - saldoSistema;
 
